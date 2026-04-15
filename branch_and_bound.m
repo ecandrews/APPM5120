@@ -10,6 +10,12 @@ format long;
 % Load in the defined activities, durations, and precedence relationships
 load('activity_defns.mat');
 
+% Define big M value
+M = 1e4;
+
+% TODO: rewrite all of this to be generic instead of hard-coded, using the
+% new stuff defined in the activity_defns.mat
+
 % At the end of the day, the "schedule" that we want out is a list of start
 % times for each of the activities. In order for the MIP solver to know
 % about these variables, we need to pass them in. But, our objective
@@ -17,11 +23,11 @@ load('activity_defns.mat');
 % start times originally, and the solver will have the info it needs to
 % perform the optimization.
 % TODO: populate this in a loop or something so it can scale better
-f = [activity_start_times(1, 1)... % Activity 1 start coefficient
-    activity_start_times(2,1)... % Activity 2 start coefficient
-    activity_start_times(3,1)... % Activity 3 start coefficient
-    activity_start_times(4,1)... % Activity 4 start coefficient
-    activity_start_times(5,1)... % Activity 5 start coefficient
+f = [0 ... % Activity 1 start coefficient
+    0 ... % Activity 2 start coefficient
+    0 ... % Activity 3 start coefficient
+    0 ... % Activity 4 start coefficient
+    0 ... % Activity 5 start coefficient
     1 ... % makespan coefficient
     0 ... % y_1_3 decision var
     0 ... % y_1_4 decision var
@@ -48,9 +54,6 @@ intcon = [7 8 9 10 11 12];
 %    no precedence relationship
 %         (becomes -start_i + start_j - M*y_ij <= -duration_j)
 %    
-% TODO: I'm just going to hardcode everything for now just
-% to get it written down, and later I'll actually use the
-% precedence_constraints matrix
 A_inequal = [1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0; % start_time1 - C
              0, 1, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0; % start_time2 - C
              0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0; % start_time3 - C
@@ -98,7 +101,6 @@ b_inequal = [-1 * activity_durations(1,1); % -duration1
 % Define lower and upper bounds for solution vector. All start times and
 % the makespan must be greater than or equal to zero, so lowerbound is
 % initialized to all zeroes. No upperbound.
-% TODO: update lb with correct number of variables, and ub
 lb = zeros(size(f,2), 1);
 ub = inf(size(f,2), 1);
 ub(7:12) = 1;
