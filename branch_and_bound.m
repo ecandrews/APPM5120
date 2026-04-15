@@ -108,3 +108,26 @@ options = optimoptions('intlinprog','Display','iter','PlotFcn','optimplotmilp');
 [soln_vec, obj_val, exitflag, output] = intlinprog(f, intcon, A_inequal, b_inequal, [], [], lb, ub);
 
 % Display schedule results in graphical form
+act_start_times = soln_vec(1:num_acts);
+act_finish_times = act_start_times + activity_durations;
+activity_times = [act_start_times, act_finish_times];
+
+figure;
+hold on;
+grid on;
+
+% Loop through all activity start and end times and plot
+for i = 1:length(act_start_times)
+    plot(activity_times(i,:), [i, i], 'LineWidth', 6);
+end
+
+% Set limits
+xlim([0, max(act_finish_times) + 1]);
+ylim([0, n+1]);
+
+% Set labels and plot title
+yticks(1:n);
+yticklabels({'Activity 1','Activity 2','Activity 3','Activity 4','Activity 5'});
+xlabel('Time (hours)');
+ylabel('Scheduled Activities');
+title('Timeline');

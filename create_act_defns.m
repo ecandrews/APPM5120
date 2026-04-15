@@ -23,6 +23,9 @@ Activity 5:
 
 %}
 
+% Define number of activities
+num_acts = 5;
+
 % Need binary decision variables for the following unordered pairs:
 % {1, 3}
 % {1, 4} - indirect
