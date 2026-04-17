@@ -13,15 +13,6 @@ load('activity_defns.mat');
 % Define big M value
 M = 1e4;
 
-% TODO: rewrite all of this to be generic instead of hard-coded, using the
-% new stuff defined in the activity_defns.mat
-
-% At the end of the day, the "schedule" that we want out is a list of start
-% times for each of the activities. In order for the MIP solver to know
-% about these variables, we need to pass them in. But, our objective
-% function to minimize is only makespan (C). So we pass in zeroes for all
-% start times originally, and the solver will have the info it needs to
-% perform the optimization.
 % Populate the objective function coefficients based on the number of
 % activities and the number of unordered pairs.
 f = [zeros(1, num_acts), 1, zeros(1, num_decision_vars)];
@@ -31,7 +22,7 @@ decision_var_index = num_acts + 2;
 intcon = decision_var_index:(decision_var_index + num_decision_vars - 1);
 
 % Define inequality constraints. intlinprog expects constraints in the form
-% of "<=".   
+% of "Ax<=b".   
 % Define A_inequal and b_inequal
 num_A_b_rows = num_acts + num_precedence_constraints + 2*(num_decision_vars);
 A_inequal = zeros(num_A_b_rows, length(f));
@@ -79,6 +70,7 @@ end
 for i=1:length(row)
     activity_i = row(i);
     activity_j = col(i);
+
     % Constraint 1
     new_row1 = zeros(1, num_acts + 1);
     new_row1(activity_j) = -1;
@@ -88,6 +80,7 @@ for i=1:length(row)
     A_inequal(row_index,:) = [new_row1, decision_vars1];
     b_inequal(row_index) = ((-1)*activity_durations(activity_i)) + M;
     row_index = row_index + 1;
+
     % Constraint 2
     new_row2 = zeros(1, num_acts + 1);
     new_row2(activity_i) = -1;
@@ -101,16 +94,17 @@ end
 
 % Define lower and upper bounds for solution vector. All start times and
 % the makespan must be greater than or equal to zero, so lowerbound is
-% initialized to all zeroes. No upperbound.
+% initialized to all zeroes. No upperbound except for the binary decision 
+% variables, which have an upperbound of 1.
 lb = zeros(length(f), 1);
 ub = inf(length(f), 1);
 ub(intcon) = 1;
 
-% Call solver function
+% Call solver function with options
 options = optimoptions('intlinprog','Display','iter','PlotFcn','optimplotmilp');
 [soln_vec, obj_val, exitflag, output] = intlinprog(f, intcon, A_inequal, b_inequal, [], [], lb, ub);
  
-% Display schedule results in graphical form
+% Display results in graphical form
 act_start_times = soln_vec(1:num_acts);
 act_finish_times = act_start_times + activity_durations;
 activity_times = [act_start_times, act_finish_times];

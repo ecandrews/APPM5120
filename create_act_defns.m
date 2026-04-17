@@ -34,27 +34,38 @@ for i = 1:length(activities)
     end
 end
 
-% TODO: this is so gross, there has got to be a more matlab-y way to do
-% this
-% TODO: add description of what this garbage is doing, also better var
-% names
+% Get all (unordered) pairs of activities that do not have a precedence
+% constraint with each other.
+% First adjust the precedence constraints matrix to have 1s on the
+% diagonals, because we don't need an unordered pair of an activity with
+% itself.
 intermediate_unordered_pairs = precedence_constraints;
 intermediate_unordered_pairs(1:size(intermediate_unordered_pairs,1) + 1:end) = 1;
 for i = 1:length(activities)
     for j = 1:length(activities)
+        % Then since a precedence exists between two activities regardless
+        % of order, any entry (i,j) should have a corresponding (j,i)
         if intermediate_unordered_pairs(i,j) == 1
             intermediate_unordered_pairs(j,i) = 1;
         end
     end
 end
+% Swap the 0s and the 1s to get the "opposite" of the precedence
+% constraints
 unordered_pairs = ~intermediate_unordered_pairs - diag(diag(~intermediate_unordered_pairs));
 for i = 1:length(activities)
     for j = 1:length(activities)
+        % No need to have duplicate pairs since they are unordered, so any
+        % entry (i,j) can have its corresponding (j,i) entry zeroed out
         if unordered_pairs(i,j) == 1
             unordered_pairs(j,i) = 0;
         end
     end
 end
+% After coming back to write comments I have no idea why I did the above
+% code in such a convoluted way, I'm sure there's a simpler more matlab-y
+% way to do it with matrix operations. But it works and I'm lazy so it will
+% stay that way for now.
 
 % Get the number of unordered pairs that will be used as the binary
 % decision variables, and number of precedence constraints
