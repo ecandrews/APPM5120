@@ -87,29 +87,26 @@ clc;
 %             {1, [13]},
 %             {3, [15]}};
 
-% TODO: I want to do another one to illustrate the way that the calculation
-% time increases with the amount of activities but I'm tired of waiting for
-% this to run, even up to 20 activities takes forever
 % Sixth Run (20 activities):
-activities = {{1, []}, 
-             {3, []}, 
-             {5, []}, 
-             {2, [6]}, 
-             {6, []},
-             {1.5, [2,3]},
+activities = {{1, [2]}, 
+             {3, [3]}, 
+             {5, [7]}, 
+             {2, []}, 
+             {6, [8]},
+             {1.5, [1]},
              {4, []},
              {5, []},
-             {2.5, [2,5]},
+             {2.5, []},
+             {3, [9]},
+             {6, [12]},
+             {4, [13]},
+             {7, []},
              {3, []},
-             {6, []},
-             {4, []},
-             {7, []},
-             {3, [4,3]},
              {2, []},
-             {7, []},
-             {6, [2]},
-             {6, [20]},
-             {4, [16]},
+             {7, [19]},
+             {6, [4]},
+             {6, [5]},
+             {4, [6]},
              {7, []}};
 num_acts = numel(activities);
 
