@@ -22,93 +22,94 @@ M = 1e4;
 % function to minimize is only makespan (C). So we pass in zeroes for all
 % start times originally, and the solver will have the info it needs to
 % perform the optimization.
-% TODO: populate this in a loop or something so it can scale better
-f = [0 ... % Activity 1 start coefficient
-    0 ... % Activity 2 start coefficient
-    0 ... % Activity 3 start coefficient
-    0 ... % Activity 4 start coefficient
-    0 ... % Activity 5 start coefficient
-    1 ... % makespan coefficient
-    0 ... % y_1_3 decision var
-    0 ... % y_1_4 decision var
-    0 ... % y_2_3 decision var
-    0 ... % y_2_5 decision var
-    0 ... % y_3_5 decision var
-    0]; % y_5_4 decision var
+% Populate the objective function coefficients based on the number of
+% activities and the number of unordered pairs.
+f = [zeros(1, num_acts), 1, zeros(1, num_decision_vars)];
 
 % Delineate indices of integer variables
-intcon = [7 8 9 10 11 12];
+decision_var_index = num_acts + 2;
+intcon = decision_var_index:(decision_var_index + num_decision_vars - 1);
 
 % Define inequality constraints. intlinprog expects constraints in the form
-% of "<=".
-% Constraints:
-%    C >= start_time + duration for all activities
-%         (becomes start_time - C <= -duration)
-%    start_j >= start_i + duration_i for precedence relationship where
-%    activity_i must occur before activity_j
-%         (becomes -start_j + start_i <= -duration_i
-%    start_j >= start_i + duration_i - M(1 - y_ij) for pairs of activities
-%    with no precedence relationship
-%         (becomes -start_j + start_i + M*y_ij <= -duration_i + M)
-%    start_i >= start_j + duration_j - M(y_ij) for pairs of activities with
-%    no precedence relationship
-%         (becomes -start_i + start_j - M*y_ij <= -duration_j)
-%    
-A_inequal = [1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0; % start_time1 - C
-             0, 1, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0; % start_time2 - C
-             0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0; % start_time3 - C
-             0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0; % start_time4 - C
-             0, 0, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0; % start_time5 - C
-             1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0; % -start_time2 + start_time1
-             0, 1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0; % -start_time4 + start_time2
-             0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0; % -start_time4 + start_time3
-             -1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0; % -start_time1 + start_time5
-             1, 0, -1, 0, 0, 0, M, 0, 0, 0, 0, 0; % -start_3 + start_1 + M*y_1_3
-             -1, 0, 1, 0, 0, 0, -M, 0, 0, 0, 0, 0; % -start_1 + start_3 - M*y_1_3
-             1, 0, 0, -1, 0, 0, 0, M, 0, 0, 0, 0; % -start_4 + start_1 + M*y_1_4
-             -1, 0, 0, 1, 0, 0, 0, -M, 0, 0, 0, 0; % -start_1 + start_4 - M*y_1_4
-             0, 1, -1, 0, 0, 0, 0, 0, M, 0, 0, 0; % -start_3 + start_2 + M*y_2_3
-             0, -1, 1, 0, 0, 0, 0, 0, -M, 0, 0, 0; % -start_2 + start_3 - M*y_2_3
-             0, 1, 0, 0, -1, 0, 0, 0, 0, M, 0, 0; % -start_5 + start_2 + M*y_2_5
-             0, -1, 0, 0, 1, 0, 0, 0, 0, -M, 0, 0; % -start_2 + start_5 - M*y_2_5
-             0, 0, 1, 0, -1, 0, 0, 0, 0, 0, M, 0; % -start_5 + start_3 + M*y_3_5
-             0, 0, -1, 0, 1, 0, 0, 0, 0, 0, -M, 0; % -start_3 + start_5 - M*y_3_5
-             0, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0, M; % -start_4 + start_5 + M*y_5_4
-             0, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, -M]; % -start_5 + start_4 - M*y_5_4
+% of "<=".   
+% Define A_inequal and b_inequal
+num_A_b_rows = num_acts + num_precedence_constraints + 2*(num_decision_vars);
+A_inequal = zeros(num_A_b_rows, length(f));
+b_inequal = zeros(num_A_b_rows, 1);
 
-b_inequal = [-1 * activity_durations(1,1); % -duration1
-             -1 * activity_durations(2,1); % -duration2
-             -1 * activity_durations(3,1); % -duration3
-             -1 * activity_durations(4,1); % -duration4
-             -1 * activity_durations(5,1); % -duration5
-             -1 * activity_durations(1,1); % -duration1
-             -1 * activity_durations(2,1); % -duration2
-             -1 * activity_durations(3,1); % -duration3
-             -1 * activity_durations(5,1); % -duration5
-             -1 * activity_durations(1,1) + M; % -duration1 + M
-             -1 * activity_durations(3,1); % -duration3
-             -1 * activity_durations(1,1) + M; % -duration1 + M
-             -1 * activity_durations(4,1); % -duration4
-             -1 * activity_durations(2,1) + M; % -duration2 + M
-             -1 * activity_durations(3,1); % -duration3
-             -1 * activity_durations(2,1) + M; % -duration2 + M
-             -1 * activity_durations(5,1); % -duration5
-             -1 * activity_durations(3,1) + M; % -duration3 + M
-             -1 * activity_durations(5,1); % -duration5
-             -1 * activity_durations(5,1) + M; % -duration5 + M
-             -1 * activity_durations(4,1)]; % -duration4
+% Add rows corresponding to constraint:
+% C >= start_time + duration for all activities
+% Convert to expected form:
+% start_time - C <= -duration
+decision_var_zeros = zeros(1, num_decision_vars);
+row_index = 1;
+for i=1:num_acts
+    new_row = zeros(1, num_acts + 1);
+    new_row(i) = 1;
+    new_row(num_acts + 1) = -1;
+    A_inequal(row_index,:) = [new_row, decision_var_zeros];
+    b_inequal(row_index) = (-1) * activity_durations(i);
+    row_index = row_index + 1;
+end
+
+% Add rows corresponding to constraint:
+% start_j >= start_i + duration_i when activity_i must occur before activity_j
+% Convert to expected form:
+% -start_j + start_i <= -duration_i
+decision_var_and_makespan_zeros = zeros(1, num_decision_vars + 1);
+[row, col] = find(precedence_constraints);
+for i=1:length(row)
+    activity_i = row(i);
+    activity_j = col(i);
+    new_row = zeros(1, num_acts);
+    new_row(activity_j) = -1;
+    new_row(activity_i) = 1;
+    A_inequal(row_index,:) = [new_row, decision_var_and_makespan_zeros];
+    b_inequal(row_index) = (-1) * activity_durations(activity_i);
+    row_index = row_index + 1;
+end
+
+% Add rows corresponding to constraints:
+% start_j >= start_i + duration_i - M(1 - y_ij) for unordered pairs
+% start_i >= start_j + duration_j - M(y_ij) for unordered pairs
+% Convert to expected form:
+% -start_j + start_i + M*y_ij <= -duration_i + M
+% -start_i + start_j - M*y_ij <= -duration_j
+[row, col] = find(unordered_pairs);
+for i=1:length(row)
+    activity_i = row(i);
+    activity_j = col(i);
+    % Constraint 1
+    new_row1 = zeros(1, num_acts + 1);
+    new_row1(activity_j) = -1;
+    new_row1(activity_i) = 1;
+    decision_vars1 = zeros(1, num_decision_vars);
+    decision_vars1(i) = M;
+    A_inequal(row_index,:) = [new_row1, decision_vars1];
+    b_inequal(row_index) = ((-1)*activity_durations(activity_i)) + M;
+    row_index = row_index + 1;
+    % Constraint 2
+    new_row2 = zeros(1, num_acts + 1);
+    new_row2(activity_i) = -1;
+    new_row2(activity_j) = 1;
+    decision_vars2 = zeros(1, num_decision_vars);
+    decision_vars2(i) = -M;
+    A_inequal(row_index,:) = [new_row2, decision_vars2];
+    b_inequal(row_index) = (-1)*activity_durations(activity_j);
+    row_index = row_index + 1;
+end
 
 % Define lower and upper bounds for solution vector. All start times and
 % the makespan must be greater than or equal to zero, so lowerbound is
 % initialized to all zeroes. No upperbound.
-lb = zeros(size(f,2), 1);
-ub = inf(size(f,2), 1);
-ub(7:12) = 1;
+lb = zeros(length(f), 1);
+ub = inf(length(f), 1);
+ub(intcon) = 1;
 
 % Call solver function
 options = optimoptions('intlinprog','Display','iter','PlotFcn','optimplotmilp');
 [soln_vec, obj_val, exitflag, output] = intlinprog(f, intcon, A_inequal, b_inequal, [], [], lb, ub);
-
+ 
 % Display schedule results in graphical form
 act_start_times = soln_vec(1:num_acts);
 act_finish_times = act_start_times + activity_durations;
@@ -122,11 +123,11 @@ grid on;
 for i = 1:length(act_start_times)
     plot(activity_times(i,:), [i, i], 'LineWidth', 6);
 end
-
+ 
 % Set limits
 xlim([0, max(act_finish_times) + 1]);
 ylim([0, n+1]);
-
+ 
 % Set labels and plot title
 yticks(1:n);
 yticklabels({'Activity 1','Activity 2','Activity 3','Activity 4','Activity 5'});
