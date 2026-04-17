@@ -11,11 +11,106 @@ clc;
 % list of zero or more activities that it must occur before.
 % Example: {6, {7, 5, 2}} <-- This activity has a duration of 6 hours, and
 % must be scheduled before activities 7, 5, and 2 are scheduled.
-activities = {{1, [2]}, 
-             {3, [4]}, 
-             {5, [4]}, 
-             {2, []}, 
-             {6, [1]}};
+
+% First Run (5 activities):
+%activities = {{1, [2]},
+%            {3, [4]},
+%            {5, [4]},
+%            {2, []},
+%            {6, [1]}};
+
+% Second Run (10 activities):
+%activities = {{1, [2]}, 
+%             {3, [4]}, 
+%             {5, [4]}, 
+%             {2, []}, 
+%             {6, [1]},
+%             {1.5, []},
+%             {4, []},
+%             {5, []},
+%             {2.5, [3]},
+%             {3, [9]}};
+
+% Third Run (10 activities, less constrained):
+%activities = {{1, [2]}, 
+%             {3, [4]}, 
+%             {5, [4]}, 
+%             {2, []}, 
+%             {6, [1]},
+%             {1.5, []},
+%             {4, []},
+%             {5, []},
+%             {2.5, []},
+%             {3, []}};
+
+% Fourth Run (10 activities, no precedence constraints):
+%activities = {{1, []}, 
+%             {3, []}, 
+%             {5, []}, 
+%             {2, []}, 
+%             {6, []},
+%             {1.5, []},
+%             {4, []},
+%             {5, []},
+%             {2.5, []},
+%             {3, []}};
+
+% Fifth Run (30 activities, all have precedence constraints):
+% activities = {{1, [2]},
+%             {3, [4]},
+%             {5, [4]},
+%             {2, [6]},
+%             {6, [1]},
+%             {1.5, [2,3]},
+%             {4, [5]},
+%             {5, [5]},
+%             {2.5, [2,5]},
+%             {3, [2]},
+%             {6, [5]},
+%             {4, [7]},
+%             {7, [9]},
+%             {3, [4,3]},
+%             {2, [6]},
+%             {7, [1]},
+%             {6, [2]},
+%             {6, [22]},
+%             {4, [16]},
+%             {7, [8]},
+%             {1, [30,29]},
+%             {7, [2]},
+%             {6, [7]},
+%             {5, [2]},
+%             {3, [8,9,10]},
+%             {1.5, [5,6,7]},
+%             {2.5, [15,2,17]},
+%             {8, [9]},
+%             {1, [13]},
+%             {3, [15]}};
+
+% TODO: I want to do another one to illustrate the way that the calculation
+% time increases with the amount of activities but I'm tired of waiting for
+% this to run, even up to 20 activities takes forever
+% Sixth Run (20 activities):
+activities = {{1, []}, 
+             {3, []}, 
+             {5, []}, 
+             {2, [6]}, 
+             {6, []},
+             {1.5, [2,3]},
+             {4, []},
+             {5, []},
+             {2.5, [2,5]},
+             {3, []},
+             {6, []},
+             {4, []},
+             {7, []},
+             {3, [4,3]},
+             {2, []},
+             {7, []},
+             {6, [2]},
+             {6, [20]},
+             {4, [16]},
+             {7, []}};
 num_acts = numel(activities);
 
 % Pull out all activity durations

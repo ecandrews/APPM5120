@@ -114,17 +114,21 @@ hold on;
 grid on;
 
 % Loop through all activity start and end times and plot
-for i = 1:length(act_start_times)
+for i=1:length(act_start_times)
     plot(activity_times(i,:), [i, i], 'LineWidth', 6);
 end
  
 % Set limits
 xlim([0, max(act_finish_times) + 1]);
-ylim([0, n+1]);
+ylim([0, num_acts+1]);
  
 % Set labels and plot title
-yticks(1:n);
-yticklabels({'Activity 1','Activity 2','Activity 3','Activity 4','Activity 5'});
+yticks(1:num_acts);
+tick_labels = strings(0);
+for i=1:num_acts
+    tick_labels(i) = strcat('Activity', " ", string(i));
+end
+yticklabels(tick_labels);
 xlabel('Time (hours)');
 ylabel('Scheduled Activities');
 title('Timeline');
