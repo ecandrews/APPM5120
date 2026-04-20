@@ -161,8 +161,8 @@ end
 
 % Get the number of unordered pairs that will be used as the binary
 % decision variables, and number of precedence constraints
-num_decision_vars = sum(unordered_pairs(:) == 1);
-num_precedence_constraints = sum(precedence_constraints(:) == 1);
+num_decision_vars = sum(unordered_pairs(:) == 1)
+num_precedence_constraints = sum(precedence_constraints(:) == 1)
 
 % Save activity definitions and info to mat file
 save('activity_defns.mat');
