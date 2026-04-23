@@ -13,10 +13,10 @@ clc;
 % must be scheduled before activities 7, 5, and 2 are scheduled, and can't
 % overlap with activity 3.
 
-activities = {{1, [2], []},
+activities = {{1, [2], [3]},
             {3, [4], []},
             {5, [4], []},
-            {2, [], []},
+            {2, [], [1,5]},
             {6, [1], []}};
 
 % Save .mat file for easy usage later
