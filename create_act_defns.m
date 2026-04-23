@@ -8,8 +8,8 @@ branch-and-bound algorithm.
 clc;
 
 % Load in the activity file for the given iteration
-load('iteration_2.mat');
-num_acts = numel(activities);
+load('iteration_3.mat');
+num_acts = numel(activities)
 
 % Pull out all activity durations
 activity_durations = cellfun(@(c) c{1}, activities);
@@ -38,8 +38,8 @@ end
 
 % Get the number of unordered pairs that will be used as the binary
 % decision variables, and number of precedence constraints
-num_decision_vars = sum(unordered_pairs(:) == 1);
-num_precedence_constraints = sum(precedence_constraints(:) == 1);
+num_decision_vars = sum(unordered_pairs(:) == 1)
+num_precedence_constraints = sum(precedence_constraints(:) == 1)
 
 % Save activity definitions and info to mat file
 save('activity_defns.mat');
